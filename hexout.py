@@ -34,7 +34,6 @@ class HexOut:
 
     # This dictionary maps byte values to printable text.  It only needs to be created once
     # for the class.
-    ascii_dict = {i: chr(i) if 32 <= i <= 126 else '.' for i in range(256)}  # This
 
     def __init__(self, bytes_per_column: int = 1, columns: int = 0, base_address: int = 0, col_separator: str = " ",
                  line_separator: str = "\n",
@@ -42,6 +41,7 @@ class HexOut:
                  addr_format: str = "{:04X}: ",
                  show_address: bool = False,
                  show_ascii: bool = False,
+                 ascii_pad:str = '.',
                  range_check: bool = True) -> None:
         self.bytes_per_column = bytes_per_column
         self.columns = columns
@@ -53,6 +53,7 @@ class HexOut:
         self.hex_format = hex_format or "{:02X}"
         self.show_ascii = show_ascii
         self.range_check = range_check
+        self.ascii_dict = {i: chr(i) if 32 <= i <= 126 else ascii_pad for i in range(256)}  # This
 
         if show_ascii and bytes_per_column != 1:
             warnings.warn("Displaying ascii only works when bytes per column=1.")
@@ -93,7 +94,7 @@ class HexOut:
     def make_ascii(self, line: Iterable[int]) -> str:
         """Return ascii string for a line."""
         if self.show_ascii and self.bytes_per_column == 1:
-            return ' ' + ''.join(HexOut.ascii_dict[b] for b in line)
+            return ' ' + ''.join(self.ascii_dict[b] for b in line)
         else:
             return ''
 

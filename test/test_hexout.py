@@ -206,3 +206,21 @@ def test_binary_output_with_address(byte_data, bytes_per_column):
     value_without_check = ho_without_check.as_hex(byte_data)
 
     assert value_with_check == value_without_check
+
+def test_make_ascii():
+    """ Verify that ascii strings honor the pad caracter.
+    """
+    ho = HexOut(ascii_pad=' ',show_ascii=True)
+    output = ho.make_ascii(b"abc")
+    #make ascii has leading space
+    assert output == ' abc'
+
+    output = ho.make_ascii(b"\x00\x01\x02\x04")
+    #make ascii has leading space.
+    assert output == '     '
+
+    #Test different pad
+    ho = HexOut(ascii_pad='.',show_ascii=True)
+    output = ho.make_ascii(b"\x00\x01\x02\x04")
+    #make ascii has leading space
+    assert output == ' ....'
