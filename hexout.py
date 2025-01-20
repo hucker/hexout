@@ -4,36 +4,34 @@ from typing import Generator,Iterable
 
 class HexOut:
     """
-    HexOut class constructs a pipeline to translate byte data into hexadecimal strings.
+    A class to convert byte data into hexadecimal representation, optionally including ASCII characters,
+    byte addresses, and custom formatting options.
 
-    The class can also optionally include the original ASCII characters,
-    the byte addresses and can format the hexadecimal strings as per user desired configurations.
+    Please note that operations are on 8bit binary data.  Strings are 8 bit characters in this context.
+    Any ASCII output is provided to be displayed as ASCII using values between decimal 32 and 126.
 
     Class Variables:
-        ascii_dict: Mapping dictionary for byte values to ASCII characters.
+        ascii_dict: Dictionary mapping byte values to ASCII characters.
 
     Instance Variables:
-        bytes_per_column: Number of bytes per column.
-        columns: Number of columns.
-        base_address: Base value used when addresses are shown.
-        addr_format: Address formatting string.
-        show_address: Flag to decide if addresses should be displayed.
-        column_separator: String to use as separator between columns.
-        line_separator: String to use as separator between lines.
-        hex_format: Hexadecimal format.
-        show_ascii: Flag to decide if ASCII representation should be displayed.
-        range_check: Flag to decide to run range checks on "binary" data.
+        bytes_per_column: Number of bytes per column in output.
+        columns: Number of columns for formatting.
+        base_address: Base address to start displaying addresses.
+        addr_format: String format for byte addresses.
+        show_address: Flag indicating whether addresses should be shown.
+        column_separator: Separator between columns in output.
+        line_separator: Separator between lines in output.
+        hex_format: Format for hexadecimal values.
+        show_ascii: Flag indicating whether ASCII characters should be displayed.
+        range_check: Flag indicating whether to check for out-of-range byte values.
 
     Methods:
         generate_hex(byte_data: bytes) -> Generator[str, None, None]:
-            Yields line-by-line hexadecimal strings that represent the byte data.
+            Yields line-by-line hexadecimal strings representing the byte data.
 
-        as_hex(byte_data: bytes, line_separator=None) -> str:
-            Returns a string of hexadecimal representation of byte data separated by lines.
+        as_hex(byte_data: bytes, line_separator: str = None) -> str:
+            Returns a complete hexadecimal string with optional line separation.
     """
-
-    # This dictionary maps byte values to printable text.  It only needs to be created once
-    # for the class.
 
     def __init__(self, bytes_per_column: int = 1, columns: int = 0, base_address: int = 0, col_separator: str = " ",
                  line_separator: str = "\n",
@@ -53,10 +51,13 @@ class HexOut:
         self.hex_format = hex_format or "{:02X}"
         self.show_ascii = show_ascii
         self.range_check = range_check
-        self.ascii_dict = {i: chr(i) if 32 <= i <= 126 else ascii_pad for i in range(256)}  # This
+
+        # Prefilled tuple to map byte values to ASCII characters, using ascii_pad for non-printables
+        # Probably the most efficient way to do this.
+        self.ascii_lookup = tuple(chr(i) if 32 <= i <= 126 else ascii_pad for i in range(256))
 
         if show_ascii and bytes_per_column != 1:
-            warnings.warn("Displaying ascii only works when bytes per column=1.")
+                warnings.warn("Displaying ascii only works when bytes per column=1.")
 
     def _yield_bytes_as_ints(self, byte_data: Generator[int, None, None]) -> Generator[int, None, None]:
         """Collect up the bytes into integers and stream those."""
@@ -92,11 +93,10 @@ class HexOut:
         return self.column_separator.join(self.hex_format.format(num) for num in line)
 
     def make_ascii(self, line: Iterable[int]) -> str:
-        """Return ascii string for a line."""
+        """Generates the ASCII representation of a line, if required."""
         if self.show_ascii and self.bytes_per_column == 1:
-            return ' ' + ''.join(self.ascii_dict[b] for b in line)
-        else:
-            return ''
+            return ' ' + ''.join(self.ascii_lookup[b] for b in line)
+        return ''
 
     def _yield_lines_as_string(self, lines: Generator[list[int], None, None]) -> Generator[str, None, None]:
         """Make the string given the list of integers.
@@ -109,11 +109,19 @@ class HexOut:
 
     def _yield_range_check(self, bytes):
         """
-        Verify al bytes are in range
+        Verifies that all byte values are within the valid range (0-255).
 
-        If you know your data this might not be needed, but including this stage
-        in the pipeline will allow for error messages that are precise in giving
-        data that allows errors to be pinpointed.
+        This check ensures the byte data doesn't contain invalid values,
+        allowing for more precise error reporting when issues occur.
+
+        Args:
+            bytes: The byte data to validate.
+
+        Yields:
+            byte: Valid byte values.
+
+        Raises:
+            ValueError: If any byte value is out of range (less than 0 or greater than 255).
         """
 
         for i, byte in enumerate(bytes):
@@ -126,7 +134,7 @@ class HexOut:
     def generate_hex(self, byte_data: bytes) -> Generator[str, None, None]:
         """Create a generator that yields line-by-line hexadecimal representing the byte data."""
 
-        # The range check flag can
+        # The range check flag could possibly speed things up a tiny bit.
         if self.range_check:
             stage0 = self._yield_range_check(byte_data)
         else:
