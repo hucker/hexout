@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 import math
 from hexout import HexOut
@@ -224,3 +225,41 @@ def test_make_ascii():
     output = ho.make_ascii(b"\x00\x01\x02\x04")
     #make ascii has leading space
     assert output == ' ....'
+
+
+@pytest.fixture
+def testfile_path()->str:
+    """
+    Fixture that provides the Path to the test file. I found in some
+    cases the test files in the test folder were not being found.  This
+    gives a way to ensure the files are always found as long as the test
+    files live in the test folder were the test_*.py files are.
+
+    Returns:
+        path (pathlib.Path): The full path to the test file.
+    """
+    # Get the directory of this file
+    test_dir = pathlib.Path(__file__).parent
+    # Construct the full path to the test file
+    path = test_dir / 'testfile.txt'
+    return str(path)
+
+
+@pytest.mark.parametrize("columns, show_address, expected_output", [
+    (2, False, '31 32 12\n33 34 34'),
+    (2, True, '0000: 31 32 12\n0002: 33 34 34')
+])
+def test_from_file(columns:int, show_address:bool, expected_output:str, testfile_path:str):
+    """
+    Test the function `from_file()` with varying column and address visibility settings.
+
+    Args:
+        columns (int): The number of columns to output.
+        show_address (bool): Whether or not to show the memory address.
+        expected_output (str): The expected output string.
+        testfile_path (Path): The full path to the test file.
+    """
+    ho = HexOut(show_ascii=True,columns=columns,show_address=show_address)
+    output = ho.from_file(testfile_path)
+
+    assert output == expected_output

@@ -16,6 +16,9 @@ binary data is in play.
 
 The main data types that are expected are byte strings, lists/tuples of integers in the range 0/255. 
 
+The default hex format is inferred to be '0widthX', the standard hex formatting with leadning 0 and
+upper case hex letters.  The width is 2*bytes_per_column, since each byte requires 2 ascii characters
+to represent it.  If you want leading 0x, or no zero padding
 
 ### Examples:
 
@@ -86,16 +89,52 @@ so the following example shows the output in binary
 This shows most of the capability with addresses, hex, and ascii output.
 
 ```text
->>>print(HexOut(show_ascii=True,columns=32).as_hex(range(0,256)))
-00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F ................................
-20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31 32 33 34 35 36 37 38 39 3A 3B 3C 3D 3E 3F  !"#$%&'()*+,-./0123456789:;<=>?
-40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F 50 51 52 53 54 55 56 57 58 59 5A 5B 5C 5D 5E 5F @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
-60 61 62 63 64 65 66 67 68 69 6A 6B 6C 6D 6E 6F 70 71 72 73 74 75 76 77 78 79 7A 7B 7C 7D 7E 7F `abcdefghijklmnopqrstuvwxyz{|}~.
-80 81 82 83 84 85 86 87 88 89 8A 8B 8C 8D 8E 8F 90 91 92 93 94 95 96 97 98 99 9A 9B 9C 9D 9E 9F ................................
-A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 AA AB AC AD AE AF B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 BA BB BC BD BE BF ................................
-C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 CA CB CC CD CE CF D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF ................................
-E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF ................................
+print(HexOut(show_ascii=True,columns=16).as_hex(range(0,256)))
+00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F ................
+10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F ................
+20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F  !"#$%&'()*+,-./
+30 31 32 33 34 35 36 37 38 39 3A 3B 3C 3D 3E 3F 0123456789:;<=>?
+40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F @ABCDEFGHIJKLMNO
+50 51 52 53 54 55 56 57 58 59 5A 5B 5C 5D 5E 5F PQRSTUVWXYZ[\]^_
+60 61 62 63 64 65 66 67 68 69 6A 6B 6C 6D 6E 6F `abcdefghijklmno
+70 71 72 73 74 75 76 77 78 79 7A 7B 7C 7D 7E 7F pqrstuvwxyz{|}~.
+80 81 82 83 84 85 86 87 88 89 8A 8B 8C 8D 8E 8F ................
+90 91 92 93 94 95 96 97 98 99 9A 9B 9C 9D 9E 9F ................
+A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 AA AB AC AD AE AF ................
+B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 BA BB BC BD BE BF ................
+C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 CA CB CC CD CE CF ................
+D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF ................
+E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF ................
+F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF ................
 ```
+
+You can easily control the number of bytes displayed in each column using the bytes_per_column.
+
+```python
+print(HexOut(bytes_per_column=1).as_hex(range(16)))
+00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+print(HexOut(bytes_per_column=2).as_hex(range(16)))
+0001 0203 0405 0607 0809 0A0B 0C0D 0E0F
+print(HexOut(bytes_per_column=4).as_hex(range(16)))
+00010203 04050607 08090A0B 0C0D0E0F
+print(HexOut(bytes_per_column=8).as_hex(range(16)))
+0001020304050607 08090A0B0C0D0E0F
+print(HexOut(bytes_per_column=16).as_hex(range(16)))
+000102030405060708090A0B0C0D0E0F
+```
+
+If you don't like leading 0's in your number formats you can use spaces by providing a custom hex format
+like this where you use the ` >` using the first character (space) as the pad character and the left or
+right padding using the `<` or `>` to indicate the padding direction.
+
+```text
+print(hexout.HexOut(bytes_per_column=2, hex_format="{: >4X}",columns=4).as_hex(range(32)))
+   1  203  405  607
+ 809  A0B  C0D  E0F
+1011 1213 1415 1617
+1819 1A1B 1C1D 1E1F
+```
+
 
 ## Exceptions
 If data is provided that is out of range for bytes (0-255) a `ValueError` exception is thrown.
