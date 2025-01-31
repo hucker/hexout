@@ -1,7 +1,7 @@
 """ Binary to Hexdump Output"""
 
 import warnings
-from typing import Generator,Iterable
+from typing import Generator, Iterable
 
 
 class HexOut:
@@ -15,8 +15,8 @@ class HexOut:
 
     Of note is the bytes_per_column configuration.  This allows you to specify that
     the data is of different sizes. It defaults to single bytes per column, but if
-    you want 16 bit data you can specify bytes_per_column = 2 or 4 bytes per column
-    to specify 32 bit data. The bytes are output in big endian format.
+    you want 16-bit data you can specify bytes_per_column = 2 or 4 bytes per column
+    to specify 32-bit data. The bytes are output in big endian format.
 
     If you have binary data that looks like b"abcdefgh" and ask for
 
@@ -59,7 +59,7 @@ class HexOut:
                  addr_format: str = "{:04X}: ",
                  show_address: bool = False,
                  show_ascii: bool = False,
-                 ascii_pad:str = '.',
+                 ascii_pad: str = '.',
                  range_check: bool = True) -> None:
         self.bytes_per_column = bytes_per_column
         self.columns = columns
@@ -68,7 +68,7 @@ class HexOut:
         self.show_address = show_address
         self.column_separator = col_separator
         self.line_separator = line_separator
-        self.hex_format = hex_format or "{:0"+str(bytes_per_column*2)+"X}"
+        self.hex_format = hex_format or "{:0" + str(bytes_per_column * 2) + "X}"
         self.show_ascii = show_ascii
         self.range_check = range_check
         self.byte_order = 'big'
@@ -92,7 +92,7 @@ class HexOut:
             yield int.from_bytes(bytes_in_chunk, self.byte_order)
 
     def _yield_ints_as_list(self,
-                            integer_data: Iterable[int])\
+                            integer_data: Iterable[int]) \
             -> Generator[list[int], None, None]:
         """ Collect the ints up in to a list of integers used on a single line. """
         line = []
@@ -121,7 +121,7 @@ class HexOut:
             return ' ' + ''.join(self.ascii_lookup[b] for b in line)
         return ''
 
-    def _yield_list_as_string(self, lines:Iterable[int]) \
+    def _yield_list_as_string(self, lines: Iterable[int]) \
             -> Generator[str, None, None]:
         """Make the string given the list of integers.
 
@@ -131,7 +131,7 @@ class HexOut:
         for i, line in enumerate(lines):
             yield self.make_address(i) + self.make_hex(line) + self.make_ascii(line)
 
-    def _yield_range_check(self, bytes_:Iterable[int]):
+    def _yield_range_check(self, bytes_: Iterable[int]):
         """
         Verifies that all byte values are within the valid range (0-255).
 
@@ -172,7 +172,7 @@ class HexOut:
         line_separator = line_separator or self.line_separator
         return line_separator.join(self.generate_hex(byte_data))
 
-    def from_file(self,filename:str,line_separator=None)->str:
+    def from_file(self, filename: str, line_separator=None) -> str:
         """
         Return the hex string reading from a file.
         Note that this has the issue of dealing with large files being read into memory
@@ -183,4 +183,4 @@ class HexOut:
         with open(filename, 'rb') as f:
             bytes = f.read()
             line_separator = line_separator or self.line_separator
-            return self.as_hex(bytes,line_separator)
+            return self.as_hex(bytes, line_separator)

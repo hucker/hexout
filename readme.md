@@ -1,24 +1,35 @@
 # HexOut
 
-`hexout` is a simple library that generates hex listings of binary data in a flexible form.
-
-## Features
-
-Packs and unpacks bytes by mapping human-readable format strings to equivalent `struct` format symbols.
-Provides format symbols for a variety of data types, including integer types, floating-point types,
-characters, strings, Pascal strings and padding.
-Supports specification of endianness in format strings using terms like `little_endian` and `big_endian`.
+`hexout` is a library that generates hex listings of binary data in a flexible form this
+is most commonly useful when dealing with binary file data, packet data and data commonly occuring
+in embedded systems work.
 
 ## Basic Usage
 
 `Hexout` can easily generate hex dumps of binary data.  Viewing data in hex is useful any time processing
 binary data is in play. 
 
-The main data types that are expected are byte strings, lists/tuples of integers in the range 0/255. 
+The main data types that are expected are byte strings, strings, lists/tuples of integers in the range 
+0/255.  For example:
 
-The default hex format is inferred to be '0widthX', the standard hex formatting with leadning 0 and
-upper case hex letters.  The width is 2*bytes_per_column, since each byte requires 2 ascii characters
-to represent it.  If you want leading 0x, or no zero padding
+```python
+seq = b'\x01\x02'
+seq = 'this is a test'   # interpreted as utf8
+seq = [1,2]
+seq = (1,2)
+
+# and of course:
+
+def my_seq():
+   yield 0
+   yield 1
+
+
+```
+
+The default hex format is inferred to be `0widthX`, the standard hex formatting with leading 0 and
+upper case hex letters.  The `width` is `2*bytes_per_column`, since each byte requires 2 ascii characters
+to represent it.  If you want leading 0x, or no zero padding you can pass in a custom format.
 
 ### Examples:
 
@@ -78,7 +89,7 @@ D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF
 E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF
 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF
 ```
-Although the library is called hexout, it really can do anything the format statement will tolerate
+Although the library is called `hexout`, it really can do anything the format statement will tolerate
 so the following example shows the output in binary
 
 ```text
@@ -137,7 +148,7 @@ print(hexout.HexOut(bytes_per_column=2, hex_format="{: >4X}",columns=4).as_hex(r
 
 
 ## Exceptions
-If data is provided that is out of range for bytes (0-255) a `ValueError` exception is thrown.
+If data is provided that is out of the range for bytes (0-255) a `ValueError` exception is thrown.
 
 
 
