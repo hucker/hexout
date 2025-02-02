@@ -117,10 +117,10 @@ class HexOut:
         if line:  # handle the last column
             yield line
 
-    def make_address(self, i: int) -> str:
+    def make_address(self, addr: int) -> str:
         """Return address string for a line."""
         if self.show_address:
-            return self.addr_format.format((i * self.bytes_per_column * self.columns)
+            return self.addr_format.format((addr * self.bytes_per_column * self.columns)
                                            + self.base_address)
         return ''
 
@@ -146,12 +146,9 @@ class HexOut:
 
     def _yield_range_check(self, bytes_: Iterable[int]):
         """Verify byte values are within range (0-255)."""
-        if not self.range_check:
-            yield from bytes_
-            return
-
+        
         for count, byte in enumerate(bytes_):
-            if not (0 <= byte <= 255):
+            if self.range_check and not (0 <= byte <= 255):
                 raise ValueError(f'Byte ({byte}) at index {count} is out of range (0-255)')
             yield byte
 
