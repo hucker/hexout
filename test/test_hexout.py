@@ -358,3 +358,30 @@ def test_zero_bytes_per_column():
 def test_negative_base_address():
     with pytest.raises(ValueError, match="base_address must be >= 0"):
         HexOut(base_address=-1)
+        
+def test_str_encode():
+    """ test that auto string encoding 'does the right thing' """
+    ho1 = HexOut()
+    s1 = ho1.as_hex(b'abcd')
+    
+    # Verify str is handled automatically
+    s2 = ho1.as_hex('abcd')
+    
+    # Override
+    ho2 = HexOut(str_encode='utf8')
+    
+    s3 = ho2.as_hex('abcd')
+    assert s1 == s2
+    assert s1 == s3
+    
+    # Now we are going to encode the string in utf-16 
+    s4 = ho1.as_hex('abcd'.encode('utf-16'))
+    assert s4 == 'FF FE 61 00 62 00 63 00 64 00'
+    
+    # Now we are going to handle strings based on the config setting, meaning that strings
+    # will just be auto encoded.
+    ho3 = HexOut(str_encode='utf16')
+    s5 = ho3.as_hex('abcd')
+    assert s5 == 'FF FE 61 00 62 00 63 00 64 00'
+    
+    

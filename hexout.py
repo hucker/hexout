@@ -63,8 +63,9 @@ class HexOut:
                  show_ascii: bool = False,
                  ascii_pad: str = '.',
                  fill_byte: Optional[int] = None,
+                 str_encode: str='utf8',
                  range_check: bool = True) -> None:
-
+              
         if columns < 0:
             raise ValueError("self.columns must be >= 0")
 
@@ -86,6 +87,7 @@ class HexOut:
         self.range_check = range_check
         self.byte_order: Literal['little', 'big'] = 'big'  # This quiets mypy and is a bit overkill.
         self.fill_byte = fill_byte
+        self.str_encode = str_encode
 
         # Prefilled tuple to map byte values to ASCII characters, using ascii_pad for non-printable
         self.ascii_lookup = tuple(chr(i) if 32 <= i <= 126 else ascii_pad for i in range(256))
@@ -188,8 +190,15 @@ class HexOut:
         stage3 = self._yield_ints_as_list(stage2)
         return self._yield_list_as_string(stage3)
 
-    def as_hex(self, byte_data: bytes, line_separator=None) -> str:
+    def as_hex(self, byte_data: bytes, encoding = None, line_separator=None) -> str:
         """Return the full hex string, which is just making a list out of the hex generator."""
+        
+        # Give them a shot to override.
+        encoding = encoding or self.str_encode
+        
+        if isinstance(byte_data, str):
+            byte_data = byte_data.encode(encoding)
+        
         line_separator = line_separator or self.line_separator
         return line_separator.join(self.generate_hex(byte_data))
 
