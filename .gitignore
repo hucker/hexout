@@ -2,3 +2,4 @@ pypi/
 dist/
 venv/
 tox/
+pypi/TestHexOutPyPi.txt
