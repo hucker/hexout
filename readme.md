@@ -6,7 +6,7 @@ in embedded systems work.
 
 ## Basic Usage
 
-`Hexout` can easily generate hex dumps of binary data.  Viewing data in hex is useful any time processing
+`Hexout` generates hex dumps of binary data.  Viewing data in hex is useful any time processing
 binary data is in play. 
 
 The main data types that are expected are byte strings, strings, lists/tuples of integers in the range 
@@ -18,7 +18,7 @@ seq = 'this is a test'   # interpreted as utf8
 seq = [1,2]
 seq = (1,2)
 
-# and of course:
+# and for bonus
 
 def my_seq():
    yield 0
@@ -119,17 +119,21 @@ E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF ................
 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF ................
 ```
 
-You can easily control the number of bytes displayed in each column using the bytes_per_column.
+You can control the number of bytes displayed in each column using the bytes_per_column.
 
 ```python
 print(HexOut(bytes_per_column=1).as_hex(range(16)))
 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+
 print(HexOut(bytes_per_column=2).as_hex(range(16)))
 0001 0203 0405 0607 0809 0A0B 0C0D 0E0F
+
 print(HexOut(bytes_per_column=4).as_hex(range(16)))
 00010203 04050607 08090A0B 0C0D0E0F
+
 print(HexOut(bytes_per_column=8).as_hex(range(16)))
 0001020304050607 08090A0B0C0D0E0F
+
 print(HexOut(bytes_per_column=16).as_hex(range(16)))
 000102030405060708090A0B0C0D0E0F
 ```
@@ -149,6 +153,12 @@ print(hexout.HexOut(bytes_per_column=2, hex_format="{: >4X}",columns=4).as_hex(r
 
 ## Exceptions
 If data is provided that is out of the range for bytes (0-255) a `ValueError` exception is thrown.
+
+## Code Metrics
+
+1. 100% Test Coverage (tox 3.9->3.13)
+2. 100% Lint (3.12)
+3. 100% Mypy (3.12)
 
 
 

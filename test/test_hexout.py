@@ -1,16 +1,20 @@
-import pathlib
-import pytest
 import math
+import pathlib
+import warnings
+
+import pytest
+
 from hexout import HexOut
+
 
 @pytest.fixture
 def byte_data():
     return b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16'
 
+
 @pytest.fixture
 def short_byte_data():
     return b'\x00\x01\x02\x03\x04\x05\x06\x07'
-
 
 
 @pytest.mark.parametrize("byte_data,expected", [
@@ -24,9 +28,24 @@ def short_byte_data():
 def test_hexout_single_line(byte_data, expected):
     # Initialize HexOut with columns=0
     ho = HexOut()
-
     # Call and test
     assert ho.as_hex(byte_data) == expected
+
+
+@pytest.mark.parametrize("byte_data,expected", [
+    (b'\x00\x01\x02\x03', "00 01 02 03"),
+    (b'\x0F\xAF\xB0\x1F\x2F', "0F AF B0 1F 2F"),
+    (b'\xFF', "FF"),
+    (b'\x00\x00\x00\x00\x00\x01', "00 00 00 00 00 01"),
+    (b'\x00\x10\x20\x30\x40\x50\x60\x70\x80\x90\xA0\xB0\xC0\xD0\xE0\xF0',
+     "00 10 20 30 40 50 60 70 80 90 A0 B0 C0 D0 E0 F0")
+])
+def test_hexout_single_line(byte_data, expected):
+    # Initialize HexOut with columns=0
+    ho = HexOut(range_check=False)
+    # Call and test
+    assert ho.as_hex(byte_data) == expected
+
 
 @pytest.mark.parametrize("byte_data, columns, expected", [
     (b'\x00\x01\x02\x03\x04', 4, "00 01 02 03\n04"),
@@ -54,17 +73,19 @@ def test_hexout_different_formats(byte_data, hex_format, expected):
     value = ho.as_hex(byte_data)
     assert value == expected
 
+
 @pytest.mark.parametrize("byte_data, columns, addr_fmt, expected", [
     (b'\x00\x01\x02\x03\x04', 1, "{:02X}: ", "00: 00\n01: 01\n02: 02\n03: 03\n04: 04"),
-    (b'\x00\x01\x02\x03\x04', 2,  "{:04X}: ","0000: 00 01\n0002: 02 03\n0004: 04"),
-    (b'\x00\x01\x02\x03\x04', 4,  "{:06X}: ", "000000: 00 01 02 03\n000004: 04"),
+    (b'\x00\x01\x02\x03\x04', 2, "{:04X}: ", "0000: 00 01\n0002: 02 03\n0004: 04"),
+    (b'\x00\x01\x02\x03\x04', 4, "{:06X}: ", "000000: 00 01 02 03\n000004: 04"),
     (b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F', 8, "{:08X}: ",
      "00000000: 00 01 02 03 04 05 06 07\n00000008: 08 09 0A 0B 0C 0D 0E 0F")
 ])
 def test_hexout_multi_line_address_width(byte_data, columns, addr_fmt, expected):
-    ho = HexOut(columns=columns, addr_format= addr_fmt,show_address=True)
+    ho = HexOut(columns=columns, addr_format=addr_fmt, show_address=True)
     value = ho.as_hex(byte_data)
     assert value == expected
+
 
 @pytest.mark.parametrize("byte_data, base_address, columns, addr_fmt, expected", [
     (b'\x00\x01\x02\x03\x04', 0x10, 1, "{:02X}: ", "10: 00\n11: 01\n12: 02\n13: 03\n14: 04"),
@@ -78,6 +99,7 @@ def test_hexout_multi_line_base_address(byte_data, base_address, columns, addr_f
     value = ho.as_hex(byte_data)
     assert value == expected
 
+
 @pytest.mark.parametrize('col_separator,base_address,addr_format,expected_output', [
     (' ', 0, '', '0000: 00 01\n0002: 02 03'),  # default to 4 digit address
     (' ', 0x100, '0x{:04x}: ', '0x0100: 00 01\n0x0102: 02 03'),
@@ -88,10 +110,12 @@ def test_hexout_multi_line_base_address(byte_data, base_address, columns, addr_f
 ])
 def test_base_address_and_separator(col_separator, base_address, addr_format, expected_output):
     data = b'\x00\x01\x02\x03'
-    ho = HexOut(columns=2, show_address=True,addr_format = addr_format, base_address=base_address,col_separator=col_separator)
+    ho = HexOut(columns=2, show_address=True, addr_format=addr_format, base_address=base_address,
+                col_separator=col_separator)
 
     value = ho.as_hex(data)
     assert value == expected_output
+
 
 def test_hexout_smoke():
     byte_data = bytes([i % 256 for i in range(127)])  # reduce data size
@@ -99,12 +123,12 @@ def test_hexout_smoke():
     bytes_per_column = 2
     addr_format = "{:06X}: "
     ho = HexOut(columns=columns,
-                    addr_format=addr_format,
-                    hex_format = "{:04X}",
-                    show_address=True,
-                    col_separator=' - ',
-                    line_separator='\n\n',
-                    bytes_per_column=bytes_per_column)
+                addr_format=addr_format,
+                hex_format="{:04X}",
+                show_address=True,
+                col_separator=' - ',
+                line_separator='\n\n',
+                bytes_per_column=bytes_per_column)
     result = ho.as_hex(byte_data)
 
     hex_representation = lambda b: f"{int.from_bytes(b, 'big'):04X}"
@@ -118,6 +142,7 @@ def test_hexout_smoke():
         for i in range(0, math.ceil(len(byte_data) / (bytes_per_column * columns)))
     )
     assert result == expected_output.strip()
+
 
 @pytest.mark.parametrize("byte_data, bytes_per_column, hex_format, expected", [
     (b"\x00\x01\x02\x04", 2, "0b{:016b}", "0b0000000000000001 0b0000001000000100"),
@@ -142,6 +167,7 @@ def test_binary_output_with_address(byte_data, bytes_per_column, hex_format, exp
     value = ho.as_hex(byte_data)
     assert value == expected
 
+
 @pytest.mark.parametrize("collection_type", [list, tuple, bytes])
 def test_ascii_dump_from_collections(collection_type):
     """Verify that the expected collection datatypes will work."""
@@ -163,22 +189,23 @@ E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA
     value = HexOut(show_ascii=True, columns=32).as_hex(coll)
     assert expect == value
 
-@pytest.mark.parametrize("byte_data,exception_message", [
-    #Lists
-    ([-1, 10, 255], 'Byte (-1) at index 0 is < 0'),
-    ([256, 10, 255], 'Byte (256) at index 0  is > 0xff/255'),
-    ([0, -1, 255], 'Byte (-1) at index 1 is < 0'),
-    ([0, 256, 255], 'Byte (256) at index 1  is > 0xff/255'),
-    ([0, 10, -1], 'Byte (-1) at index 2 is < 0'),
-    ([0, 10, 256], 'Byte (256) at index 2  is > 0xff/255'),
 
-     # Tuples (overkill)
-    ((-1, 10, 255), 'Byte (-1) at index 0 is < 0'),
-    ((256, 10, 255), 'Byte (256) at index 0  is > 0xff/255'),
-    ((0, -1, 255), 'Byte (-1) at index 1 is < 0'),
-    ((0, 256, 255), 'Byte (256) at index 1  is > 0xff/255'),
-    ((0, 10, -1), 'Byte (-1) at index 2 is < 0'),
-    ((0, 10, 256), 'Byte (256) at index 2  is > 0xff/255'),
+@pytest.mark.parametrize("byte_data,exception_message", [
+    # Lists
+    ([-1, 10, 255], 'Byte (-1) at index 0 is out of range (0-255)'),
+    ([256, 10, 255], 'Byte (256) at index 0 is out of range (0-255)'),
+    ([0, -1, 255], 'Byte (-1) at index 1 is out of range (0-255)'),
+    ([0, 256, 255], 'Byte (256) at index 1 is out of range (0-255)'),
+    ([0, 10, -1], 'Byte (-1) at index 2 is out of range (0-255)'),
+    ([0, 10, 256], 'Byte (256) at index 2 is out of range (0-255)'),
+
+    # Tuples (overkill)
+    ((-1, 10, 255), 'Byte (-1) at index 0 is out of range (0-255)'),
+    ((256, 10, 255), 'Byte (256) at index 0 is out of range (0-255)'),
+    ((0, -1, 255), 'Byte (-1) at index 1 is out of range (0-255)'),
+    ((0, 256, 255), 'Byte (256) at index 1 is out of range (0-255)'),
+    ((0, 10, -1), 'Byte (-1) at index 2 is out of range (0-255)'),
+    ((0, 10, 256), 'Byte (256) at index 2 is out of range (0-255)'),
     # add more test cases as needed
 ])
 def test_yield_check(byte_data, exception_message):
@@ -187,6 +214,7 @@ def test_yield_check(byte_data, exception_message):
     with pytest.raises(ValueError) as excinfo:
         list(ho._yield_range_check(byte_data))
     assert str(excinfo.value) == exception_message
+
 
 @pytest.mark.parametrize("byte_data, bytes_per_column, ", [
     (b"\x00\x01\x02\x04", 2),
@@ -208,27 +236,28 @@ def test_binary_output_with_address(byte_data, bytes_per_column):
 
     assert value_with_check == value_without_check
 
+
 def test_make_ascii():
     """ Verify that ascii strings honor the pad caracter.
     """
-    ho = HexOut(ascii_pad=' ',show_ascii=True)
+    ho = HexOut(ascii_pad=' ', show_ascii=True)
     output = ho.make_ascii(b"abc")
-    #make ascii has leading space
+    # make ascii has leading space
     assert output == ' abc'
 
     output = ho.make_ascii(b"\x00\x01\x02\x04")
-    #make ascii has leading space.
+    # make ascii has leading space.
     assert output == '     '
 
-    #Test different pad
-    ho = HexOut(ascii_pad='.',show_ascii=True)
+    # Test different pad
+    ho = HexOut(ascii_pad='.', show_ascii=True)
     output = ho.make_ascii(b"\x00\x01\x02\x04")
-    #make ascii has leading space
+    # make ascii has leading space
     assert output == ' ....'
 
 
 @pytest.fixture
-def testfile_path()->str:
+def testfile_path() -> str:
     """
     Fixture that provides the Path to the test file. I found in some
     cases the test files in the test folder were not being found.  This
@@ -249,17 +278,83 @@ def testfile_path()->str:
     (2, False, '31 32 12\n33 34 34'),
     (2, True, '0000: 31 32 12\n0002: 33 34 34')
 ])
-def test_from_file(columns:int, show_address:bool, expected_output:str, testfile_path:str):
+def test_from_file(columns: int, show_address: bool, expected_output: str, testfile_path: str):
     """
     Test the function `from_file()` with varying column and address visibility settings.
 
     Args:
         columns (int): The number of columns to output.
-        show_address (bool): Whether or not to show the memory address.
+        show_address (bool): Whether to show the memory address.
         expected_output (str): The expected output string.
         testfile_path (Path): The full path to the test file.
     """
-    ho = HexOut(show_ascii=True,columns=columns,show_address=show_address)
+    ho = HexOut(show_ascii=True, columns=columns, show_address=show_address)
     output = ho.from_file(testfile_path)
 
     assert output == expected_output
+
+
+@pytest.mark.parametrize("source, columns, bytes_per_column, byte_fill, expected", [
+
+    (b'a', 1, 1, 0, "61"),
+    (b'a', 2, 1, 0, "61 00"),
+    (b'a', 2, 2, 0, "6100 0000"),
+    (b'ab', 2, 2, 0, "6162 0000"),
+    (b'abc', 2, 2, 0, "6162 6300"),
+    (b'abcd', 2, 2, 0, "6162 6364"),
+    (b'abcde', 2, 2, 0, "6162 6364\n6500 0000"),
+    (b'abcdef', 2, 2, 0, "6162 6364\n6566 0000"),
+    (b'abcdefg', 2, 2, 0, "6162 6364\n6566 6700"),
+    (b'abcdefgh', 2, 2, 0, "6162 6364\n6566 6768"),
+    (b'abcdefgh', 1, 4, 0, "61626364\n65666768"),
+
+    (b'', 1, 1, 0, ""),  # Empty source test (one might argue this should be the line length full of fill_byte)
+    (b'a', 2, 1, 2, "61 02"),  # Byte_fill = 2
+    (b'abcd' * 32, 2, 2, 0, "\n".join(["6162 6364"] * 32)),  # Large input test
+
+])
+def test_page_fill(source, columns, bytes_per_column, byte_fill, expected):
+    ho = HexOut(columns=columns, bytes_per_column=bytes_per_column, fill_byte=byte_fill)
+    output = ho.as_hex(source)
+    assert output == expected
+
+
+def test_warn_on_invalid_show_ascii():
+    """
+    Hexout uses the warning package for one case, this verifies that it works.
+    """
+    with warnings.catch_warnings(record=True) as w:  # We catch warnings
+        # Set up your HexOut with show_ascii=True and bytes_per_column not equal to 1
+        _ = HexOut(show_ascii=True, bytes_per_column=2)
+        # Check that only one warning was issued
+        assert len(w) == 1
+        # Verify the message of the warning
+        assert str(w[-1].message) == "Displaying ascii only works when bytes_per_column=1."
+
+    with warnings.catch_warnings(record=True) as w:  # We catch warnings
+        # Set up your HexOut with show_ascii=False and bytes_per_column not equal to 1
+        _ = HexOut(show_ascii=False, bytes_per_column=2)
+        # Check that no warnings were issued
+        assert len(w) == 0
+
+    with warnings.catch_warnings(record=True) as w:  # We catch warnings
+        # Set up your HexOut with show_ascii=True and bytes_per_column equals to 1
+        _ = HexOut(show_ascii=True, bytes_per_column=1)
+        # Check that no warnings were issued
+        assert len(w) == 0
+
+
+
+def test_negative_columns():
+    with pytest.raises(ValueError, match="columns must be >= 0"):
+        HexOut(columns=-1)
+
+
+def test_zero_bytes_per_column():
+    with pytest.raises(ValueError, match="bytes_per_column must be >= 1"):
+        HexOut(bytes_per_column=0)
+
+
+def test_negative_base_address():
+    with pytest.raises(ValueError, match="base_address must be >= 0"):
+        HexOut(base_address=-1)
