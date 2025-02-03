@@ -1,16 +1,24 @@
 
 [project]
 name = "hexout"
-version = "0.0.1"
+version = "0.0.6"
 authors = [
   { name="Chuck Bass", email="chuck@arcocad.net" },
 ]
-description = "Tool for formatting binary data."
+maintainers = [
+  { name="Chuck Bass", email="chuck@arcocad.net" },
+]
+description = "Tool for formatting binary data in hex."
 readme = "readme.md"
 requires-python = ">=3.9"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
@@ -23,18 +31,10 @@ Homepage = "https://github.com/hucker233/hexout"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
-name = "hexout"
-version = "0.2.0"
-description = "Convert sequences of integer python data into tabular hex."
-authors = ["Chuck Bass <chuck@acrocad.net>"]
-license = "MIT"
-readme = "README.md"
-
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.9"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^6.2"
 
 [tool.poetry.scripts]
