@@ -1,7 +1,7 @@
 
 [project]
 name = "hexout"
-version = "0.0.6"
+version = "0.0.7"
 authors = [
   { name="Chuck Bass", email="chuck@arcocad.net" },
 ]
